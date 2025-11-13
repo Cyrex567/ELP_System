@@ -1,82 +1,75 @@
-
+// Wait for the DOM (the page) to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Your web app's Firebase configuration
-    const firebaseConfig = {
-      apiKey: "AIzaSyBQldoMD2wJAzkkb1XGSzOUcF-91wYDrcE",
-      authDomain: "erp-app-96665.firebaseapp.com",
-      projectId: "erp-app-96665",
-      storageBucket: "erp-app-96665.appspot.com",
-      messagingSenderId: "198152539994",
-      appId: "1:198152539994:web:2f7e2486a5672de4a9ed63",
-      measurementId: "G-HV1M9BDF8L"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const bookingsCollection = db.collection('bookings');
 
     // Find our key elements
     const bookingForm = document.getElementById('booking-form');
     const bookingList = document.getElementById('booking-list');
 
-    const editModal = document.getElementById('edit-modal');
-    const editForm = document.getElementById('edit-form');
-    const closeModal = document.querySelector('.close-button');
+    // --- DATA ---
+    // Load bookings from localStorage, or start with an empty array if there's nothing
+    let bookings = JSON.parse(localStorage.getItem('cleanBookings')) || [];
 
-    // --- RENDER FUNCTION (with real-time listener) ---
+    // --- FUNCTIONS ---
 
+    /**
+     * Saves the current 'bookings' array to localStorage.
+     * localStorage can only store strings, so we convert the array to a JSON string.
+     */
+    const saveBookings = () => {
+        localStorage.setItem('cleanBookings', JSON.stringify(bookings));
+    };
+
+    /**
+     * Renders all bookings from the 'bookings' array into the HTML.
+     */
     const renderBookings = () => {
-        bookingList.innerHTML = ''; // Clear the list
+        // Clear the current list
+        bookingList.innerHTML = '';
 
-        // Listen for real-time updates
-        bookingsCollection.orderBy('date').onSnapshot((snapshot) => {
-            if (snapshot.empty) {
-                bookingList.innerHTML = '<p>No upcoming bookings. Add one!</p>';
-                return;
-            }
+        // If no bookings, show a message
+        if (bookings.length === 0) {
+            bookingList.innerHTML = '<p>No upcoming bookings. Add one!</p>';
+            return;
+        }
 
-            // Clear the list before re-rendering
-            bookingList.innerHTML = '';
+        // Sort bookings by date (soonest first)
+        const sortedBookings = bookings.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-            snapshot.forEach(doc => {
-                const booking = doc.data();
-                const id = doc.id;
+        // Loop through each booking and create an HTML card for it
+        sortedBookings.forEach(booking => {
+            const bookingEl = document.createElement('div');
+            bookingEl.classList.add('booking-item');
 
-                const bookingEl = document.createElement('div');
-                bookingEl.classList.add('booking-item');
-
-                const bookingDate = new Date(booking.date);
-                const readableDate = bookingDate.toLocaleString('en-US', {
-                    dateStyle: 'full',
-                    timeStyle: 'short'
-                });
-
-                bookingEl.innerHTML = `
-                    <button class="btn-edit" data-id="${id}">Edit</button>
-                    <button class="btn-delete" data-id="${id}">X</button>
-                    <h3>${booking.service} - <strong>${booking.name}</strong></h3>
-                    <p><strong>Date:</strong> ${readableDate}</p>
-                    <p><strong>Phone:</strong> ${booking.phone}</p>
-                    <p><strong>Address:</strong> ${booking.address}</p>
-                    ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
-                `;
-
-                bookingList.appendChild(bookingEl);
+            // Format the date to be more readable
+            const bookingDate = new Date(booking.date);
+            const readableDate = bookingDate.toLocaleString('en-US', {
+                dateStyle: 'full',
+                timeStyle: 'short'
             });
-        }, (error) => {
-            console.error("Error fetching bookings: ", error);
-            bookingList.innerHTML = '<p>Error loading bookings. Please try again later.</p>';
+
+            bookingEl.innerHTML = `
+                <button class="btn-delete" data-id="${booking.id}">X</button>
+                <h3>${booking.service} - <strong>${booking.name}</strong></h3>
+                <p><strong>Date:</strong> ${readableDate}</p>
+                <p><strong>Phone:</strong> ${booking.phone}</p>
+                <p><strong>Address:</strong> ${booking.address}</p>
+                ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ''}
+            `;
+
+            bookingList.appendChild(bookingEl);
         });
     };
 
-
-    // --- FORM SUBMISSION ---
-
-    const addBooking = async (event) => {
+    /**
+     * Handles the form submission for adding a new booking.
+     */
+    const addBooking = (event) => {
+        // Stop the form from submitting the old-fashioned way
         event.preventDefault();
 
+        // Create a new booking object from the form values
         const newBooking = {
+            id: Date.now(), // Simple unique ID using the current timestamp
             name: document.getElementById('customer-name').value,
             phone: document.getElementById('customer-phone').value,
             address: document.getElementById('customer-address').value,
@@ -85,113 +78,48 @@ document.addEventListener('DOMContentLoaded', () => {
             notes: document.getElementById('special-notes').value
         };
 
-        try {
-            await bookingsCollection.add(newBooking);
-            bookingForm.reset();
-        } catch (error) {
-            console.error("Error adding booking: ", error);
-            alert("There was an error saving your booking. Please try again.");
-        }
+        // Add the new booking to our array
+        bookings.push(newBooking);
+
+        // Save the updated array to localStorage
+        saveBookings();
+
+        // Re-render the list on the page
+        renderBookings();
+
+        // Reset the form for the next entry
+        bookingForm.reset();
     };
 
-    const deleteModal = document.getElementById('delete-modal');
-    const confirmDeleteBtn = document.getElementById('confirm-delete');
-    const cancelDeleteBtn = document.getElementById('cancel-delete');
-    let bookingIdToDelete = null;
+    /**
+     * Handles deleting a booking when the 'X' button is clicked.
+     */
+    const deleteBooking = (event) => {
+        // Check if the clicked element is a delete button
+        if (event.target.classList.contains('btn-delete')) {
+            // Get the 'data-id' attribute from the button
+            const bookingId = parseInt(event.target.getAttribute('data-id'));
+            
+            // Filter the bookings array, keeping only the ones that *don't* match the ID
+            bookings = bookings.filter(booking => booking.id !== bookingId);
 
-    const openDeleteModal = (id) => {
-        bookingIdToDelete = id;
-        deleteModal.style.display = 'block';
-    };
+            // Save the new, shorter array
+            saveBookings();
 
-    const closeDeleteModal = () => {
-        bookingIdToDelete = null;
-        deleteModal.style.display = 'none';
-    };
-
-    const deleteBooking = async () => {
-        if (bookingIdToDelete) {
-            try {
-                await bookingsCollection.doc(bookingIdToDelete).delete();
-                closeDeleteModal();
-            } catch (error) {
-                console.error("Error deleting booking: ", error);
-                alert("There was an error deleting the booking. Please try again.");
-            }
-        }
-    };
-
-    const openEditModal = async (id) => {
-        try {
-            const doc = await bookingsCollection.doc(id).get();
-            if (doc.exists) {
-                const booking = doc.data();
-                document.getElementById('edit-booking-id').value = id;
-                document.getElementById('edit-customer-name').value = booking.name;
-                document.getElementById('edit-customer-phone').value = booking.phone;
-                document.getElementById('edit-customer-address').value = booking.address;
-                document.getElementById('edit-service-type').value = booking.service;
-                document.getElementById('edit-booking-date').value = booking.date;
-                document.getElementById('edit-special-notes').value = booking.notes;
-                editModal.style.display = 'block';
-            } else {
-                console.log("No such document!");
-            }
-        } catch (error) {
-            console.error("Error getting document:", error);
-        }
-    };
-
-    const closeEditModal = () => {
-        editModal.style.display = 'none';
-    };
-
-    const updateBooking = async (event) => {
-        event.preventDefault();
-        const id = document.getElementById('edit-booking-id').value;
-        const updatedBooking = {
-            name: document.getElementById('edit-customer-name').value,
-            phone: document.getElementById('edit-customer-phone').value,
-            address: document.getElementById('edit-customer-address').value,
-            service: document.getElementById('edit-service-type').value,
-            date: document.getElementById('edit-booking-date').value,
-            notes: document.getElementById('edit-special-notes').value
-        };
-
-        try {
-            await bookingsCollection.doc(id).update(updatedBooking);
-            closeEditModal();
-        } catch (error) {
-            console.error("Error updating booking: ", error);
-            alert("There was an error updating the booking. Please try again.");
+            // Re-render the list
+            renderBookings();
         }
     };
 
     // --- EVENT LISTENERS ---
-    bookingForm.addEventListener('submit', addBooking);
-    bookingList.addEventListener('click', (event) => {
-        if (event.target.classList.contains('btn-delete')) {
-            const bookingId = event.target.getAttribute('data-id');
-            openDeleteModal(bookingId);
-        } else if (event.target.classList.contains('btn-edit')) {
-            const bookingId = event.target.getAttribute('data-id');
-            openEditModal(bookingId);
-        }
-    });
-    closeModal.addEventListener('click', closeEditModal);
-    editForm.addEventListener('submit', updateBooking);
-    confirmDeleteBtn.addEventListener('click', deleteBooking);
-    cancelDeleteBtn.addEventListener('click', closeDeleteModal);
 
-    window.addEventListener('click', (event) => {
-        if (event.target == editModal) {
-            closeEditModal();
-        }
-        if (event.target == deleteModal) {
-            closeDeleteModal();
-        }
-    });
+    // Listen for the 'submit' event on our form
+    bookingForm.addEventListener('submit', addBooking);
+
+    // Listen for 'click' events on the booking list (for deleting)
+    bookingList.addEventListener('click', deleteBooking);
 
     // --- INITIAL LOAD ---
+    // Render any saved bookings as soon as the page loads
     renderBookings();
 });
