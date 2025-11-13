@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cleaning Service Booker</title>
+    <title>CleanBook ERP v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,50 +11,129 @@
 
     <header>
         <h1>🧹 CleanBook ERP (Phone Portal)</h1>
+        <nav class="tabs">
+            <button class="tab-link active" data-tab="bookings">🗓️ Bookings</button>
+            <button class="tab-link" data-tab="customers">👥 Customers</button>
+            <button class="tab-link" data-tab="staff">👷 Staff</button>
+        </nav>
     </header>
 
     <main class="container">
-        
-        <section class="card">
-            <h2>📞 New Phone Booking</h2>
-            <form id="booking-form">
-                <div class="form-group">
-                    <label for="customer-name">Customer Name</label>
-                    <input type="text" id="customer-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="customer-phone">Customer Phone</label>
-                    <input type="tel" id="customer-phone" required>
-                </div>
-                <div class="form-group">
-                    <label for="customer-address">Customer Address</label>
-                    <input type="text" id="customer-address" required>
-                </div>
-                <div class="form-group">
-                    <label for="service-type">Service Type</label>
-                    <select id="service-type">
-                        <option value="Standard Clean">Standard Clean</option>
-                        <option value="Deep Clean">Deep Clean</option>
-                        <option value="Move-Out Clean">Move-Out Clean</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="booking-date">Booking Date & Time</label>
-                    <input type="datetime-local" id="booking-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="special-notes">Special Notes</label>
-                    <textarea id="special-notes" rows="3"></textarea>
-                </div>
-                <button type="submit" class="btn-primary">Save Booking</button>
-            </form>
-        </section>
 
-        <section class="card">
-            <h2>🗓️ Upcoming Bookings</h2>
-            <div id="booking-list">
+        <!-- =======================
+             BOOKINGS PAGE
+        ======================== -->
+        <div id="bookings" class="tab-content active">
+            <!-- NEW BOOKING FORM -->
+            <section class="card">
+                <h2>📞 New Phone Booking</h2>
+                <form id="booking-form">
+                    
+                    <div class="form-group">
+                        <label for="booking-customer">Customer</label>
+                        <select id="booking-customer" required>
+                            <option value="">-- Select a Customer --</option>
+                            <!-- Customers will be loaded here by JS -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="booking-staff">Assign to Staff</label>
+                        <select id="booking-staff" required>
+                            <option value="">-- Assign a Staff Member --</option>
+                            <!-- Staff will be loaded here by JS -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service-type">Service Type</label>
+                        <select id="service-type">
+                            <option value="Standard Clean">Standard Clean</option>
+                            <option value="Deep Clean">Deep Clean</option>
+                            <option value="Move-Out Clean">Move-Out Clean</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="booking-date">Booking Date & Time</label>
+                        <input type="datetime-local" id="booking-date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="special-notes">Special Notes (for this job)</label>
+                        <textarea id="special-notes" rows="3"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">Save Booking</button>
+                </form>
+            </section>
+
+            <!-- UPCOMING BOOKINGS LIST -->
+            <section class="card">
+                <h2>🗓️ Upcoming Bookings</h2>
+                <div id="booking-list">
+                    <!-- Bookings will be dynamically added here -->
                 </div>
-        </section>
+            </section>
+        </div>
+
+        <!-- =======================
+             CUSTOMERS PAGE
+        ======================== -->
+        <div id="customers" class="tab-content">
+            <!-- NEW CUSTOMER FORM -->
+            <section class="card">
+                <h2>➕ Add New Customer</h2>
+                <form id="customer-form">
+                    <div class="form-group">
+                        <label for="customer-name">Customer Name</label>
+                        <input type="text" id="customer-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-phone">Customer Phone</label>
+                        <input type="tel" id="customer-phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-address">Customer Address</label>
+                        <input type="text" id="customer-address" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Customer</button>
+                </form>
+            </section>
+
+            <!-- CUSTOMER LIST -->
+            <section class="card">
+                <h2>👥 Customer List</h2>
+                <div id="customer-list">
+                    <!-- Customer list will be dynamically added here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- =======================
+             STAFF PAGE
+        ======================== -->
+        <div id="staff" class="tab-content">
+            <!-- NEW STAFF FORM -->
+            <section class="card">
+                <h2>👷 Add New Staff Member</h2>
+                <form id="staff-form">
+                    <div class="form-group">
+                        <label for="staff-name">Staff Member's Name</label>
+                        <input type="text" id="staff-name" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Staff Member</button>
+                </form>
+            </section>
+
+            <!-- STAFF LIST -->
+            <section class="card">
+                <h2>👷 Staff List</h2>
+                <div id="staff-list">
+                    <!-- Staff list will be dynamically added here -->
+                </div>
+            </section>
+        </div>
 
     </main>
 
