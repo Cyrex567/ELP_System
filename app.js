@@ -2,12 +2,13 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyA-...",
-      authDomain: "cleanbook-erp.firebaseapp.com",
-      projectId: "cleanbook-erp",
-      storageBucket: "cleanbook-erp.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:abcdef1234567890"
+      apiKey: "AIzaSyBQldoMD2wJAzkkb1XGSzOUcF-91wYDrcE",
+      authDomain: "erp-app-96665.firebaseapp.com",
+      projectId: "erp-app-96665",
+      storageBucket: "erp-app-96665.appspot.com",
+      messagingSenderId: "198152539994",
+      appId: "1:198152539994:web:2f7e2486a5672de4a9ed63",
+      measurementId: "G-HV1M9BDF8L"
     };
 
     // Initialize Firebase
